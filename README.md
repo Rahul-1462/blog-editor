@@ -1,5 +1,5 @@
 # Blog Editor Web App (Python + Flask + MongoDB)
-This is a simple blog editor project built using Python Flask and MongoDB. It allows users to write blog posts, save them as drafts (manually or automatically every 5 seconds), and publish them. This project is intended for learning purposes and internship practice. It was developed and tested using Visual Studio Code (VS Code).
+This is a simple blog editor project built using Python Flask and MongoDB. It allows users to write blog posts, save them as drafts (manually or automatically every 5 seconds), and publish them. It was developed and tested using Visual Studio Code (VS Code).
 
 ## Features
 * Create blog posts with title, content, and tags
