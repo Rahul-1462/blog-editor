@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Blogs</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>All Blogs</h1>
+            <nav>
+                <a href="/" class="btn">New Blog</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="blogs-container">
+                <div class="filter-tabs">
+                    <button class="tab active" data-filter="all">All</button>
+                    <button class="tab" data-filter="published">Published</button>
+                    <button class="tab" data-filter="draft">Drafts</button>
+                </div>
+                
+                <div id="blogs-list" class="blogs-list">
+                    <!-- Blogs will be loaded here dynamically -->
+                    <div class="loading">Loading blogs...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // JavaScript for blogs.html
+        document.addEventListener('DOMContentLoaded', function() {
+            const API_URL = 'http://localhost:5000/api/blogs';
+            const blogsList = document.getElementById('blogs-list');
+            const filterTabs = document.querySelectorAll('.tab');
+            
+            // Load blogs based on filter
+            async function loadBlogs(filter = 'all') {
+                blogsList.innerHTML = '<div class="loading">Loading blogs...</div>';
+                
+                try {
+                    const url = filter === 'all' ? API_URL : `${API_URL}?status=${filter}`;
+                    const response = await fetch(url);
+                    const blogs = await response.json();
+                    
+                    if (blogs.length === 0) {
+                        blogsList.innerHTML = '<div class="no-blogs">No blogs found</div>';
+                        return;
+                    }
+                    
+                    displayBlogs(blogs);
+                } catch (error) {
+                    console.error('Error loading blogs:', error);
+                    blogsList.innerHTML = '<div class="error">Failed to load blogs</div>';
+                }
+            }
+            
+            // Display blogs in the list
+            function displayBlogs(blogs) {
+                blogsList.innerHTML = '';
+                
+                blogs.forEach(blog => {
+                    const blogCard = document.createElement('div');
+                    blogCard.className = `blog-card ${blog.status}`;
+                    
+                    const statusLabel = blog.status === 'published' ? 
+                        '<span class="status published">Published</span>' : 
+                        '<span class="status draft">Draft</span>';
+                    
+                    const tagsHTML = blog.tags && blog.tags.length ? 
+                        `<div class="tags">${blog.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : 
+                        '';
+                    
+                    const date = new Date(blog.updated_at.$date);
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                    
+                    blogCard.innerHTML = `
+                        <div class="blog-header">
+                            <h2>${blog.title || 'Untitled'}</h2>
+                            ${statusLabel}
+                        </div>
+                        <div class="blog-preview">${blog.content.substring(0, 150)}${blog.content.length > 150 ? '...' : ''}</div>
+                        ${tagsHTML}
+                        <div class="blog-footer">
+                            <span class="date">Updated: ${formattedDate}</span>
+                            <button class="btn btn-small edit-btn" data-id="${blog._id.$oid}">Edit</button>
+                        </div>
+                    `;
+                    
+                    blogsList.appendChild(blogCard);
+                });
+                
+                // Add event listener to edit buttons
+                document.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const blogId = this.getAttribute('data-id');
+                        window.location.href = `/?id=${blogId}`;
+                    });
+                });
+            }
+            
+            // Add event listeners to filter tabs
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Update active tab
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Load blogs with selected filter
+                    const filter = this.getAttribute('data-filter');
+                    loadBlogs(filter);
+                });
+            });
+            
+            // Load all blogs initially
+            loadBlogs();
+        });
+    </script>
+</body>
+</html>
